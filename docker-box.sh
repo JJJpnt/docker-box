@@ -264,6 +264,23 @@ if ! PORTAINER_API_TOKEN=$(
   exit 1
 fi
 
+log "Creating primary portainer endpoint"
+
+if ! PORTAINER_ENDPOINT_ID=$(
+  docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
+    curl \
+    --fail \
+    --silent \
+    --header "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
+    --header 'Accept: application/json' \
+    --request POST \
+    --data "Name=PreprodEndpoint&EndpointCreationType=2&URL=tcp://tasks.portainer_agent:9001" \
+    portainer:9000/api/auth |
+    portainer:9000/api/endpoints | jq -e -c '.[] | select(.Name | contains("primary")) | .Id'
+); then
+  log_error "Unable to get primary portainer endpoint id"
+fi
+
 log "Getting primary portainer endpoint id..."
 
 if ! PORTAINER_ENDPOINT_ID=$(
