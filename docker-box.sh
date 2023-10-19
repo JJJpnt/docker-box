@@ -275,7 +275,6 @@ if ! PORTAINER_ENDPOINT_ID=$(
     --header 'Accept: application/json' \
     --request POST \
     --data "Name=PreprodEndpoint&EndpointCreationType=2&URL=tcp://tasks.portainer_agent:9001" \
-    portainer:9000/api/auth |
     portainer:9000/api/endpoints | jq -e -c '.[] | select(.Name | contains("primary")) | .Id'
 ); then
   log_error "Unable to get primary portainer endpoint id"
