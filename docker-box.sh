@@ -78,7 +78,7 @@ OS_VERSION=$(
   . /etc/os-release
   echo "${VERSION_ID}"
 )
-if [ "${OS_VERSION}" != "20.04" ]; then
+if [ "${OS_VERSION}" != "22.04" ]; then
   log_error "Wrong Ubuntu version: ${OS_VERSION}"
   exit 1
 fi
