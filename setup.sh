@@ -26,7 +26,7 @@ if [ ! -d "$DOCKER_BOX_PATH" ]; then
   log "Downloading docker-box..."
   git clone \
     --depth 1 \
-    https://github.com/badsyntax/docker-box \
+    https://github.com/jjjpnt/docker-box \
     "$DOCKER_BOX_PATH"
 fi
 

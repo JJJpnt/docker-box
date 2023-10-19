@@ -27,7 +27,7 @@ Create a wildcard `A` (ipv4) record to point `*.docker-box.example.com` to your 
 Run the following script to install:
 
 ```bash
-curl -s https://raw.githubusercontent.com/badsyntax/docker-box/master/setup.sh | sudo -E bash
+curl -s https://raw.githubusercontent.com/jjjpnt/docker-box/master/setup.sh | sudo -E bash
 ```
 
 ## Demo

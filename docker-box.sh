@@ -88,10 +88,11 @@ echo -e "${GREEN}OK${NC}"
 export DEBIAN_FRONTEND=noninteractive
 
 ARCH=$(dpkg --print-architecture)
-PORTAINER_VERSION="linux-${ARCH}"
+# PORTAINER_VERSION="linux-${ARCH}"
+PORTAINER_VERSION="2.19.1-alpine"
 TRAEFIK_NETWORK="traefik-public"
-TRAEFIK_VERSION="latest"
-DOCKER_REGISTRY_VERSION="latest"
+TRAEFIK_VERSION="v2.10.5"
+DOCKER_REGISTRY_VERSION="2.8.3"
 ACME_STORAGE="/letsencrypt/acme.json"
 DOCKER_BOX_PATH="${HOME}/docker-box"
 DOCKER_BOX_DATA_PATH="${DOCKER_BOX_PATH}/.docker-box-data"
@@ -99,8 +100,8 @@ DOCKER_BOX_HOST="docker-box.example.com"
 DOCKER_REGISTRY_USERNAME="richard"
 CERTIFICATE_EMAIL="email@example.com"
 PORTAINER_ADMIN_PASSWORD=""
-ENABLE_TLS="n"
-ENABLE_HTTPS_REDIRECTION="n"
+ENABLE_TLS="y"
+ENABLE_HTTPS_REDIRECTION="y"
 
 log "Installing setup packages..."
 
@@ -173,7 +174,10 @@ apt-get -yqq install \
   docker-ce \
   docker-ce-cli \
   containerd.io \
+  # docker-buildx-plugin \
+  # docker-compose-plugin \
   >/dev/null
+
 
 log "Setting up docker swarm..."
 if ! docker service ls 2>/dev/null; then
