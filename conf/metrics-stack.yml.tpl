@@ -16,7 +16,7 @@ services:
       - {{ TRAEFIK_NETWORK }}
     deploy:
       labels:
-       - "traefik.http.routers.prometheus.rule=Host(`{{ PROMETHEUS_HOSTNAME }}}`)"
+       - "traefik.http.routers.prometheus.rule=Host(`{{ PROMETHEUS_HOST }}`)"
        - "traefik.http.routers.prometheus.service=prometheus"
        - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
        - "traefik.docker.network={{ TRAEFIK_NETWORK }}"
@@ -40,7 +40,7 @@ services:
     user: "104"
     deploy:
       labels:
-        - "traefik.http.routers.grafana.rule=Host(`{{ GRAFANA_HOSTNAME }}`)"
+        - "traefik.http.routers.grafana.rule=Host(`{{ GRAFANA_HOST }}`)"
         - "traefik.http.routers.grafana.service=grafana"
         - "traefik.http.services.grafana.loadbalancer.server.port=3000"
         - "traefik.docker.network={{ TRAEFIK_NETWORK }}"
