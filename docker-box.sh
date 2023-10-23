@@ -153,6 +153,9 @@ true >"${DOCKER_BOX_DATA_PATH}"
   echo "export ENABLE_TLS=${ENABLE_TLS}"
   echo "export ENABLE_HTTPS_REDIRECTION=${ENABLE_HTTPS_REDIRECTION}"
   echo "export CERTIFICATE_EMAIL=${CERTIFICATE_EMAIL}"
+  echo "export TRAEFIK_AUTH=${TRAEFIK_AUTH}"
+  echo "export TRAEFIK_USERNAME=${TRAEFIK_USERNAME}"
+  echo "export METRICS=${METRICS}"
 } >>"${DOCKER_BOX_DATA_PATH}"
 
 # shellcheck source=/dev/null
@@ -295,8 +298,13 @@ if ! PORTAINER_ENDPOINT_ID=$(
     --silent \
     --header "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
     --header 'Accept: application/json' \
+    --header "Content-Type: multipart/form-data" \
     --request POST \
-    --data "Name=primary&EndpointCreationType=2&URL=tcp://tasks.portainer_agent:9001&TLSSkipVerify=true&TLSSkipClientVerify=true" \
+    --form Name=primary \
+    --form EndpointCreationType=2 \
+    --form URL=tcp://tasks.portainer_agent:9001 \
+    --form TLSSkipVerify=true \
+    --form TLSSkipClientVerify=true \
     portainer:9000/api/endpoints
 ); then
   log_error "Unable to create primary portainer endpoint"
@@ -346,6 +354,7 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
   portainer:9000/api/stacks | jq -e -c '.[] | select(.Name | contains("traefik"))' >/dev/null; then
 
   TRAEFIK_STACK=$(docker run -i \
+    -e TRAEFIK_AUTH="$TRAEFIK_AUTH" \
     -e TRAEFIK_VERSION="$TRAEFIK_VERSION" \
     -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
     -e TRAEFIK_HOST="${TRAEFIK_HOST}" \

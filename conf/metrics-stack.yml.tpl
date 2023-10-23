@@ -36,7 +36,7 @@ services:
     env_file:
       - ./grafana/config.monitoring
     networks:
-      - inbound
+      - {{ TRAEFIK_NETWORK }}
     user: "104"
     deploy:
       labels:
@@ -50,6 +50,12 @@ services:
       restart_policy:
         condition: on-failure
 
+networks:
+  {{ TRAEFIK_NETWORK }}:
+    external: true
+
 volumes:
     prometheus_data:
     grafana_data:
+
+
