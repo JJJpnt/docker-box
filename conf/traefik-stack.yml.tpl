@@ -13,11 +13,17 @@ services:
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock:ro'
       - 'etc:/etc/traefik'
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
       {%- if ENABLE_TLS == 'y' %}
       - {{ ACME_STORAGE }}:{{ ACME_STORAGE }}
       {%- endif %}
     healthcheck:
       test: ['CMD', 'traefik', 'healthcheck', '--ping']
+    {%- if TRAEFIK_AUTH == 'y' %}
+    secrets:
+      - portainer-pass
+    {%- endif %}
     command:
       - '--ping'
       - '--api.insecure=true'
@@ -31,9 +37,24 @@ services:
       # - '--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory'
       - '--certificatesresolvers.letsencrypt.acme.tlschallenge=true'
       {%- endif %}
+      {%- if TRAEFIK_AUTH == 'y' %}
+      - "traefik.http.routers.traefik.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.usersfile=/run/secrets/traefik-users"
+      {%- endif %}
+      {%- if METRICS == 'y' %}
+      - '--metrics.prometheus=true'
+      - '--metrics.prometheus.buckets=0.100000, 0.300000, 1.200000, 5.000000'
+      - '--metrics.prometheus.addEntryPointsLabels=true'
+      - '--metrics.prometheus.addServicesLabels=true'
+      - '--metrics.prometheus.headerlabels.useragent=User-Agent'
+      {%- endif %}
     networks:
       - {{ TRAEFIK_NETWORK }}
     deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
       replicas: 1
       labels:
         - 'traefik.http.routers.traefik.entrypoints=web'

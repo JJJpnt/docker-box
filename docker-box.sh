@@ -102,6 +102,10 @@ CERTIFICATE_EMAIL="email@example.com"
 PORTAINER_ADMIN_PASSWORD=""
 ENABLE_TLS="y"
 ENABLE_HTTPS_REDIRECTION="y"
+TRAEFIK_AUTH="y"
+TRAEFIK_USERNAME="admin"
+TRAEFIK_PASSWORD=""
+METRICS="y"
 
 log "Installing setup packages..."
 
@@ -133,6 +137,15 @@ else
   ENABLE_HTTPS_REDIRECTION="n"
 fi
 
+METRICS=$(get-input "Enable metrics? (y/n)" "${METRICS}")
+
+TRAEFIK_AUTH=$(get-input "Enable traefik basic auth? (y/n)" "${TRAEFIK_AUTH}")
+if [ "${TRAEFIK_AUTH}" = 'y' ]; then
+  TRAEFIK_USERNAME=$(get-input "Traefik username" "admin")
+  echo "Traefik password"
+  TRAEFIK_PASSWORD=$(htpasswd -nB "${TRAEFIK_USERNAME}")
+fi
+
 true >"${DOCKER_BOX_DATA_PATH}"
 {
   echo "export DOCKER_BOX_HOST=${DOCKER_BOX_HOST}"
@@ -148,6 +161,8 @@ source "${DOCKER_BOX_DATA_PATH}"
 DOCKER_REGISTRY_HOST="registry.$DOCKER_BOX_HOST"
 TRAEFIK_HOST="traefik.$DOCKER_BOX_HOST"
 PORTAINER_HOST="portainer.$DOCKER_BOX_HOST"
+PROMETHEUS_HOST="prometheus.$DOCKER_BOX_HOST"
+GRAFANA_HOST="grafana.$DOCKER_BOX_HOST"
 
 log "Upgrading packages..."
 apt-get -yqq update
@@ -195,6 +210,13 @@ chmod 600 "${ACME_STORAGE}"
 log "Creating portainer secret..."
 if ! docker secret inspect portainer-pass 2>/dev/null >/dev/null; then
   echo -n "${PORTAINER_ADMIN_PASSWORD}" | docker secret create portainer-pass -
+fi
+
+if [ "${TRAEFIK_AUTH}" = 'y' ]; then
+  log "Creating traefik secret..."
+  if ! docker secret inspect traefik-users 2>/dev/null >/dev/null; then
+    echo -n "${TRAEFIK_PASSWORD}" | docker secret create traefik-users -
+  fi
 fi
 
 log "Creating traefik docker network..."
@@ -274,10 +296,10 @@ if ! PORTAINER_ENDPOINT_ID=$(
     --header "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
     --header 'Accept: application/json' \
     --request POST \
-    --data "Name=PreprodEndpoint&EndpointCreationType=2&URL=tcp://tasks.portainer_agent:9001" \
-    portainer:9000/api/endpoints | jq -e -c '.[] | select(.Name | contains("primary")) | .Id'
+    --data "Name=primary&EndpointCreationType=2&URL=tcp://tasks.portainer_agent:9001&TLSSkipVerify=true&TLSSkipClientVerify=true" \
+    portainer:9000/api/endpoints
 ); then
-  log_error "Unable to get primary portainer endpoint id"
+  log_error "Unable to create primary portainer endpoint"
 fi
 
 log "Getting primary portainer endpoint id..."
@@ -395,6 +417,46 @@ else
   log_warn "docker-registry stack already exists, skipping..."
 fi
 
+log "Creating metrics stack..."
+
+if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
+  curl \
+  --fail \
+  --silent \
+  --header "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
+  --header 'Accept: application/json' \
+  --request GET \
+  portainer:9000/api/stacks | jq -e -c '.[] | select(.Name | contains("metrics"))' >/dev/null; then
+
+  METRICS_STACK=$(docker run -i \
+    -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
+    -e PROMETHEUS_HOST="${PROMETHEUS_HOST}" \
+    -e GRAFANA_HOST="${GRAFANA_HOST}" \
+    -e ENABLE_TLS="${ENABLE_TLS}" \
+    -e ENABLE_HTTPS_REDIRECTION="${ENABLE_HTTPS_REDIRECTION}" \
+    python:3.9.6-alpine3.14 \
+    sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
+    <"${DOCKER_BOX_PATH}/conf/metrics-stack.yml.tpl")
+  METRICS_STACK=$(echo "${METRICS_STACK}" | jq --raw-input --slurp)
+
+  if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
+    curl \
+    --fail \
+    --silent \
+    --header "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
+    --header "Content-Type: application/json" \
+    --header 'Accept: application/json' \
+    --request POST \
+    --data "{\"name\":\"metrics\",\"stackFileContent\":${METRICS_STACK},\"swarmID\":\"${PORTAINER_SWARM_ID}\"}" \
+    "portainer:9000/api/stacks?type=1&method=string&endpointId=${PORTAINER_ENDPOINT_ID}" > \
+    /dev/null; then
+    log_error "Unable to create metrics stack"
+    exit 1
+  fi
+else
+  log_warn "metrics stack already exists, skipping..."
+fi
+
 log "Pruning unused docker objects (this can take a while)..."
 docker system prune --force
 
@@ -405,3 +467,7 @@ log_success "Success! Your box is ready to use!"
 echo -e "➡ ${GREEN}Access portainer at: ${SCHEME}://${PORTAINER_HOST}/${NC}"
 echo -e "➡ ${GREEN}Access traefik at: ${SCHEME}://${TRAEFIK_HOST}/${NC}"
 echo -e "➡ ${GREEN}Access docker-registry at: ${SCHEME}://${DOCKER_REGISTRY_HOST}/${NC}"
+if [ "${METRICS}" = 'y' ]; then
+  echo -e "➡ ${GREEN}Access prometheus at: ${SCHEME}://${PROMETHEUS_HOST}/${NC}"
+  echo -e "➡ ${GREEN}Access grafana at: ${SCHEME}://${GRAFANA_HOST}/${NC}"
+fi
