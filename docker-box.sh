@@ -293,9 +293,9 @@ fi
 
 log "Creating primary portainer endpoint"
 
-docker network create \
---driver overlay \
-  portainer_agent_network
+# docker network create \
+# --driver overlay \
+#   portainer_agent_network
 
 docker service create \
   --name portainer_agent \

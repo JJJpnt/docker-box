@@ -31,7 +31,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - data:/data
     networks:
-      # - portainer-agent
+      - portainer_agent
       - {{ TRAEFIK_NETWORK }}
     environment:
       AGENT_SECRET: {{ AGENT_SECRET }}
@@ -64,8 +64,8 @@ services:
         {%- endif %}
 
 networks:
-  # portainer-agent:
-  #   driver: overlay
+  portainer-agent:
+    driver: overlay
   #   attachable: true
   {{ TRAEFIK_NETWORK }}:
     external: true
