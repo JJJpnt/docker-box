@@ -15,6 +15,9 @@ if [ "$SWARM_ACTIVE" = "active" ]; then
 
     # Supprimer toutes les configs Docker Swarm
     docker config rm $(docker config ls -q)
+
+    # Supprimer le swarm
+    docker swarm leave --force
 fi
 
 # Supprimer tous les conteneurs
