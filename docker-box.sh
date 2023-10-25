@@ -106,6 +106,7 @@ TRAEFIK_AUTH="y"
 TRAEFIK_USERNAME="admin"
 TRAEFIK_PASSWORD=""
 METRICS="y"
+AGENT_SECRET=$(openssl rand -hex 32)
 
 log "Installing setup packages..."
 
@@ -235,6 +236,7 @@ if [ ! -f "${DOCKER_BOX_PATH}/conf/portainer-stack.yml" ]; then
     -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
     -e PORTAINER_HOST="${PORTAINER_HOST}" \
     -e ENABLE_TLS="${ENABLE_TLS}" \
+    -e AGENT_SECRET="${AGENT_SECRET}" \
     -e ENABLE_HTTPS_REDIRECTION="${ENABLE_HTTPS_REDIRECTION}" \
     python:3.9.6-alpine3.14 \
     sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \

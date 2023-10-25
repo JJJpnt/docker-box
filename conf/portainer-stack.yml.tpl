@@ -6,6 +6,7 @@ services:
     environment:
       AGENT_CLUSTER_ADDR: tasks.agent
       AGENT_PORT: 9001
+      AGENT_SECRET: {{ AGENT_SECRET }}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/volumes:/var/lib/docker/volumes
@@ -32,6 +33,8 @@ services:
     networks:
       - portainer-agent
       - {{ TRAEFIK_NETWORK }}
+    environment:
+      AGENT_SECRET: {{ AGENT_SECRET }}
     secrets:
       - portainer-pass
     depends_on:
