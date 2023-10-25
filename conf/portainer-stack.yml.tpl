@@ -31,7 +31,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - data:/data
     networks:
-      - portainer-agent
+      # - portainer-agent
       - {{ TRAEFIK_NETWORK }}
     environment:
       AGENT_SECRET: {{ AGENT_SECRET }}
