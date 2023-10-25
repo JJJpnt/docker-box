@@ -1,25 +1,25 @@
 version: '3.8'
 
 services:
-  agent:
-    image: portainer/agent:{{ PORTAINER_VERSION }}
-    environment:
-      AGENT_CLUSTER_ADDR: tasks.agent
-      AGENT_PORT: 9001
-      AGENT_SECRET: {{ AGENT_SECRET }}
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/volumes:/var/lib/docker/volumes
-      - etc:/etc
-    networks:
-      - portainer-agent
-    deploy:
-      mode: global
-      placement:
-        constraints: [node.platform.os == linux]
-      labels:
-        # fix traefik error "service \"portainer-agent\" error: port is missing"""
-        - 'traefik.http.services.portainer-agent-service.loadbalancer.server.port=1337'
+  # agent:
+  #   image: portainer/agent:{{ PORTAINER_VERSION }}
+  #   environment:
+  #     AGENT_CLUSTER_ADDR: tasks.agent
+  #     AGENT_PORT: 9001
+  #     AGENT_SECRET: {{ AGENT_SECRET }}
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /var/lib/docker/volumes:/var/lib/docker/volumes
+  #     - etc:/etc
+  #   networks:
+  #     - portainer-agent
+  #   deploy:
+  #     mode: global
+  #     placement:
+  #       constraints: [node.platform.os == linux]
+  #     labels:
+  #       # fix traefik error "service \"portainer-agent\" error: port is missing"""
+  #       - 'traefik.http.services.portainer-agent-service.loadbalancer.server.port=1337'
 
   portainer:
     image: portainer/portainer-ce:{{ PORTAINER_VERSION }}
@@ -64,9 +64,9 @@ services:
         {%- endif %}
 
 networks:
-  portainer-agent:
-    driver: overlay
-    attachable: true
+  # portainer-agent:
+  #   driver: overlay
+  #   attachable: true
   {{ TRAEFIK_NETWORK }}:
     external: true
 
