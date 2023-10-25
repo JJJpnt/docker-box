@@ -142,7 +142,7 @@ METRICS=$(get-input "Enable metrics? (y/n)" "${METRICS}")
 
 TRAEFIK_AUTH=$(get-input "Enable traefik basic auth? (y/n)" "${TRAEFIK_AUTH}")
 if [ "${TRAEFIK_AUTH}" = 'y' ]; then
-  TRAEFIK_USERNAME=$(get-input "Traefik username" "admin")
+  TRAEFIK_USERNAME=$(get-input "Traefik username" ${TRAEFIK_USERNAME})
   echo "Traefik password"
   TRAEFIK_PASSWORD=$(htpasswd -nB "${TRAEFIK_USERNAME}")
 fi
