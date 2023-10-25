@@ -293,24 +293,39 @@ fi
 
 log "Creating primary portainer endpoint"
 
-if ! PORTAINER_ENDPOINT_ID=$(
-  docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
-    curl \
-    --fail \
-    --silent \
-    --header "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
-    --header 'Accept: application/json' \
-    --header "Content-Type: multipart/form-data" \
-    --request POST \
-    --form Name=primary \
-    --form EndpointCreationType=2 \
-    --form URL=tcp://tasks.portainer_agent:9001 \
-    --form TLSSkipVerify=true \
-    --form TLSSkipClientVerify=true \
-    portainer:9000/api/endpoints
-); then
-  log_error "Unable to create primary portainer endpoint"
-fi
+docker network create \
+--driver overlay \
+  portainer_agent_network
+
+docker service create \
+  --name portainer_agent \
+  --network portainer_agent_network \
+  -p 9001:9001/tcp \
+  -e AGENT_SECRET=${AGENT_SECRET} \
+  --mode global \
+  --constraint 'node.platform.os == linux' \
+  --mount type=bind,src=//var/run/docker.sock,dst=/var/run/docker.sock \
+  --mount type=bind,src=//var/lib/docker/volumes,dst=/var/lib/docker/volumes \
+  portainer/agent:${PORTAINER_VERSION}
+
+# if ! PORTAINER_ENDPOINT_ID=$(
+#   docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
+#     curl \
+#     --fail \
+#     --silent \
+#     --header "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
+#     --header 'Accept: application/json' \
+#     --header "Content-Type: multipart/form-data" \
+#     --request POST \
+#     --form Name=primary \
+#     --form EndpointCreationType=2 \
+#     --form URL=tcp://tasks.portainer_agent:9001 \
+#     portainer:9000/api/endpoints
+# ); then
+#   log_error "Unable to create primary portainer endpoint"
+# fi
+    # --form TLSSkipVerify=true \
+    # --form TLSSkipClientVerify=true \
 
 log "Getting primary portainer endpoint id..."
 
