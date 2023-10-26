@@ -3,7 +3,7 @@ version: '3.8'
 services:
   agent:
     image: portainer/agent:{{ PORTAINER_VERSION }}
-    environment:
+    # environment:
     #   AGENT_CLUSTER_ADDR: tasks.agent
     #   AGENT_PORT: 9001
       # AGENT_SECRET: {{ AGENT_SECRET }}
