@@ -4,7 +4,7 @@ services:
   agent:
     image: portainer/agent:{{ PORTAINER_VERSION }}
     environment:
-      AGENT_CLUSTER_ADDR: tasks.agent
+      AGENT_CLUSTER_ADDR: tasks.portainer_agent
       AGENT_PORT: 9001
       # AGENT_SECRET: {{ AGENT_SECRET }}
     volumes:
@@ -24,7 +24,7 @@ services:
   portainer:
     image: portainer/portainer-ce:{{ PORTAINER_VERSION }}
     command:
-      - '--host=tcp://tasks.agent:9001'
+      - '--host=tcp://tasks.portainer_agent:9001'
       - '--admin-password-file=/run/secrets/portainer-pass'
       - '--tlsskipverify'
       - '--log-level=DEBUG'
