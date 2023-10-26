@@ -12,9 +12,9 @@ services:
         mode: host
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock:ro'
-      - 'etc:/etc/traefik'
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
+      # - 'etc:/etc/traefik'
+      # - /etc/timezone:/etc/timezone:ro
+      # - /etc/localtime:/etc/localtime:ro
       {%- if ENABLE_TLS == 'y' %}
       - {{ ACME_STORAGE }}:{{ ACME_STORAGE }}
       {%- endif %}
@@ -22,14 +22,17 @@ services:
       test: ['CMD', 'traefik', 'healthcheck', '--ping']
     {%- if TRAEFIK_AUTH == 'y' %}
     secrets:
-      - portainer-pass
+      - traefik-users
     {%- endif %}
     command:
       - '--ping'
+      - '--log.level=DEBUG'
       - '--api.insecure=true'
-      - '--providers.docker.swarmMode=true'
-      - '--providers.docker.network={{ TRAEFIK_NETWORK }}'
       - '--entrypoints.web.address=:80'
+      - '--providers.docker'
+      - '--providers.docker.swarmmode=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--providers.docker.network={{ TRAEFIK_NETWORK }}'
       {%- if ENABLE_TLS == 'y' %}
       - '--entrypoints.websecure.address=:443'
       - '--certificatesresolvers.letsencrypt.acme.email={{ CERTIFICATE_EMAIL }}'
@@ -37,26 +40,25 @@ services:
       # - '--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory'
       - '--certificatesresolvers.letsencrypt.acme.tlschallenge=true'
       {%- endif %}
-      {%- if TRAEFIK_AUTH == 'y' %}
-      - "traefik.http.routers.traefik.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.usersfile=/run/secrets/traefik-users"
-      {%- endif %}
       {%- if METRICS == 'y' %}
       - '--metrics.prometheus=true'
+      - '--entryPoints.metrics.address=:8082'
+      - '--metrics.prometheus.entryPoint=metrics'
       - '--metrics.prometheus.buckets=0.100000, 0.300000, 1.200000, 5.000000'
       - '--metrics.prometheus.addEntryPointsLabels=true'
       - '--metrics.prometheus.addServicesLabels=true'
       - '--metrics.prometheus.headerlabels.useragent=User-Agent'
+      # - '--metrics.prometheus.headerlabels.useragent=X-Forwarded-For'
       {%- endif %}
     networks:
       - {{ TRAEFIK_NETWORK }}
     deploy:
       mode: global
-      placement:
-        constraints:
-          - node.role == manager
-      replicas: 1
       labels:
+        {%- if TRAEFIK_AUTH == 'y' %}
+        - "traefik.http.routers.traefik.middlewares=auth"
+        - "traefik.http.middlewares.auth.basicauth.usersfile=/run/secrets/traefik-users"
+        {%- endif %}
         - 'traefik.http.routers.traefik.entrypoints=web'
         - 'traefik.http.routers.traefik.rule=Host(`{{ TRAEFIK_HOST }}`)'
         - 'traefik.http.services.traefik-service.loadbalancer.server.port=8080'
@@ -71,9 +73,13 @@ services:
         - 'traefik.http.routers.traefik.middlewares=traefik-redirectscheme'
         {%- endif %}
 
-volumes:
-  etc:
+# volumes:
+#   etc:
 
 networks:
   {{ TRAEFIK_NETWORK }}:
+    external: true
+
+secrets:
+  traefik-users:
     external: true

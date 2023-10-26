@@ -6,7 +6,7 @@ services:
     environment:
     #   AGENT_CLUSTER_ADDR: tasks.agent
     #   AGENT_PORT: 9001
-      AGENT_SECRET: {{ AGENT_SECRET }}
+      # AGENT_SECRET: {{ AGENT_SECRET }}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/volumes:/var/lib/docker/volumes
@@ -29,17 +29,16 @@ services:
       - '--tlsskipverify'
       - '--log-level=DEBUG'
     volumes:
-      # - /var/run/docker.sock:/var/run/docker.sock
-      - data:/data
+      - portainer_data:/data
     networks:
       - agent_network
       - {{ TRAEFIK_NETWORK }}
-    environment:
-      AGENT_SECRET: {{ AGENT_SECRET }}
+    # environment:
+    #   AGENT_SECRET: {{ AGENT_SECRET }}
     secrets:
       - portainer-pass
-    # depends_on:
-    #   - agent
+    depends_on:
+      - agent
     # We can't provide a healthcheck for portainer, yet
     # See: https://github.com/portainer/portainer/issues/3572
     # healthcheck:
@@ -72,8 +71,8 @@ networks:
     external: true
 
 volumes:
-  data:
-  etc:
+  portainer_data:
+  # etc:
 
 secrets:
   portainer-pass:
