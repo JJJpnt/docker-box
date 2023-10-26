@@ -3,9 +3,9 @@ version: '3.8'
 services:
   agent:
     image: portainer/agent:{{ PORTAINER_VERSION }}
-    # environment:
-    #   AGENT_CLUSTER_ADDR: tasks.agent
-    #   AGENT_PORT: 9001
+    environment:
+      AGENT_CLUSTER_ADDR: tasks.agent
+      AGENT_PORT: 9001
       # AGENT_SECRET: {{ AGENT_SECRET }}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

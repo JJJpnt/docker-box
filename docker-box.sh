@@ -371,7 +371,7 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
   --silent \
   --header "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
   --header 'Accept: application/json' \
-  --request GET \cd c 
+  --request GET \
   portainer:9000/api/stacks | jq -e -c '.[] | select(.Name | contains("traefik"))' >/dev/null; then
 
   TRAEFIK_STACK=$(docker run -i \
