@@ -296,18 +296,18 @@ fi
 # --driver overlay \
 #   portainer_agent_network
 
-log "Creating portainer agent service..."
+# log "Creating portainer agent service..."
 
-docker service create \
-  --name portainer_agent \
-  --network portainer_agent_network \
-  -p 9001:9001/tcp \
-  -e AGENT_SECRET=${AGENT_SECRET} \
-  --mode global \
-  --constraint 'node.platform.os == linux' \
-  --mount type=bind,src=//var/run/docker.sock,dst=/var/run/docker.sock \
-  --mount type=bind,src=//var/lib/docker/volumes,dst=/var/lib/docker/volumes \
-  portainer/agent:${PORTAINER_VERSION}
+# docker service create \
+#   --name portainer_agent \
+#   --network portainer_agent_network \
+#   -p 9001:9001/tcp \
+#   -e AGENT_SECRET=${AGENT_SECRET} \
+#   --mode global \
+#   --constraint 'node.platform.os == linux' \
+#   --mount type=bind,src=//var/run/docker.sock,dst=/var/run/docker.sock \
+#   --mount type=bind,src=//var/lib/docker/volumes,dst=/var/lib/docker/volumes \
+#   portainer/agent:${PORTAINER_VERSION}
 
 log "Creating primary portainer endpoint"
 
@@ -322,13 +322,14 @@ if ! PORTAINER_ENDPOINT_ID=$(
     --request POST \
     --form Name=primary \
     --form EndpointCreationType=2 \
-    --form URL=tcp://tasks.portainer_agent:9001 \
+    --form TLS=true \
+    --form TLSSkipVerify=true \
+    --form TLSSkipClientVerify=true \
     portainer:9000/api/endpoints
 ); then
   log_error "Unable to create primary portainer endpoint"
 fi
-    --form TLSSkipVerify=true \
-    --form TLSSkipClientVerify=true \
+    # --form URL=tcp://tasks.portainer_agent:9001 \
 
 log "Getting primary portainer endpoint id..."
 

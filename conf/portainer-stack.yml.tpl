@@ -1,34 +1,35 @@
 version: '3.8'
 
 services:
-  # agent:
-  #   image: portainer/agent:{{ PORTAINER_VERSION }}
-  #   environment:
-  #     AGENT_CLUSTER_ADDR: tasks.agent
-  #     AGENT_PORT: 9001
-  #     AGENT_SECRET: {{ AGENT_SECRET }}
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #     - /var/lib/docker/volumes:/var/lib/docker/volumes
-  #     - etc:/etc
-  #   networks:
-  #     - portainer-agent
-  #   deploy:
-  #     mode: global
-  #     placement:
-  #       constraints: [node.platform.os == linux]
-  #     labels:
-  #       # fix traefik error "service \"portainer-agent\" error: port is missing"""
-  #       - 'traefik.http.services.portainer-agent-service.loadbalancer.server.port=1337'
+  agent:
+    image: portainer/agent:{{ PORTAINER_VERSION }}
+    # environment:
+    #   AGENT_CLUSTER_ADDR: tasks.agent
+    #   AGENT_PORT: 9001
+      AGENT_SECRET: {{ AGENT_SECRET }}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+      # - etc:/etc
+    networks:
+      - agent_network
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.platform.os == linux]
+      labels:
+        # fix traefik error "service \"portainer-agent\" error: port is missing"""
+        - 'traefik.http.services.portainer-agent-service.loadbalancer.server.port=1337'
 
   portainer:
     image: portainer/portainer-ce:{{ PORTAINER_VERSION }}
     command:
+      - '--H tcp://tasks.agent:9001'
       - '--admin-password-file=/run/secrets/portainer-pass'
-      - '--host=tcp://tasks.agent:9001'
       - '--tlsskipverify'
+      - '--log-level=DEBUG'
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      # - /var/run/docker.sock:/var/run/docker.sock
       - data:/data
     networks:
       - agent_network
@@ -37,8 +38,8 @@ services:
       AGENT_SECRET: {{ AGENT_SECRET }}
     secrets:
       - portainer-pass
-    depends_on:
-      - agent
+    # depends_on:
+    #   - agent
     # We can't provide a healthcheck for portainer, yet
     # See: https://github.com/portainer/portainer/issues/3572
     # healthcheck:
@@ -66,7 +67,7 @@ services:
 networks:
   agent_network:
     driver: overlay
-  #   attachable: true
+    attachable: true
   {{ TRAEFIK_NETWORK }}:
     external: true
 
