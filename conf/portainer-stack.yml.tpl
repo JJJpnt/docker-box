@@ -13,6 +13,11 @@ services:
       # - etc:/etc
     networks:
       - agent_network
+    ports:
+      - target: 9001
+        published: 9001
+        protocol: tcp
+        mode: host
     deploy:
       mode: global
       placement:
