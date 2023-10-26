@@ -371,7 +371,7 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
   --silent \
   --header "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
   --header 'Accept: application/json' \
-  --request GET \
+  --request GET \cd c 
   portainer:9000/api/stacks | jq -e -c '.[] | select(.Name | contains("traefik"))' >/dev/null; then
 
   TRAEFIK_STACK=$(docker run -i \
@@ -388,6 +388,22 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
     <"${DOCKER_BOX_PATH}/conf/traefik-stack.yml.tpl")
   TRAEFIK_STACK=$(echo "${TRAEFIK_STACK}" | jq --raw-input --slurp)
+
+  # DEBUG === TRAEFIK_STACK OUTPUT
+  docker run -i \
+    -e METRICS="$METRICS" \
+    -e TRAEFIK_AUTH="$TRAEFIK_AUTH" \
+    -e TRAEFIK_VERSION="$TRAEFIK_VERSION" \
+    -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
+    -e TRAEFIK_HOST="${TRAEFIK_HOST}" \
+    -e ENABLE_TLS="${ENABLE_TLS}" \
+    -e ENABLE_HTTPS_REDIRECTION="${ENABLE_HTTPS_REDIRECTION}" \
+    -e ACME_STORAGE="${ACME_STORAGE}" \
+    -e CERTIFICATE_EMAIL="${CERTIFICATE_EMAIL}" \
+    python:3.9.6-alpine3.14 \
+    sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
+    <"${DOCKER_BOX_PATH}/conf/traefik-stack.yml.tpl" \
+    >"${DOCKER_BOX_PATH}/conf/traefik-stack.yml"
 
   if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     curl \

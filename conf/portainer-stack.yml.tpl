@@ -24,7 +24,7 @@ services:
   portainer:
     image: portainer/portainer-ce:{{ PORTAINER_VERSION }}
     command:
-      - '--H tcp://tasks.agent:9001'
+      - '--host=tcp://tasks.agent:9001'
       - '--admin-password-file=/run/secrets/portainer-pass'
       - '--tlsskipverify'
       - '--log-level=DEBUG'
