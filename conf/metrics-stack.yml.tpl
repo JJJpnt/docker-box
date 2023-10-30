@@ -16,11 +16,11 @@ services:
       - {{ TRAEFIK_NETWORK }}
     deploy:
       labels:
-       - "traefik.enable=true"
-       - "traefik.http.routers.prometheus.rule=Host(`{{ PROMETHEUS_HOST }}`)"
-       - "traefik.http.routers.prometheus.service=prometheus"
-       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
-       - "traefik.docker.network={{ TRAEFIK_NETWORK }}"
+        - "traefik.enable=true"
+        - "traefik.http.routers.prometheus.rule=Host(`{{ PROMETHEUS_HOST }}`)"
+        - "traefik.http.routers.prometheus.service=prometheus"
+        - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+        - "traefik.docker.network={{ TRAEFIK_NETWORK }}"
         {%- if ENABLE_TLS == 'y' %}
         - 'traefik.http.routers.prometheus-secure.entrypoints=websecure'
         - 'traefik.http.routers.prometheus-secure.rule=Host(`{{ PROMETHEUS_HOST }}`)'
