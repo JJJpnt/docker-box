@@ -11,10 +11,8 @@ services:
         published: 443
         mode: host
     volumes:
-      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       # - 'etc:/etc/traefik'
-      # - /etc/timezone:/etc/timezone:ro
-      # - /etc/localtime:/etc/localtime:ro
       {%- if ENABLE_TLS == 'y' %}
       - {{ ACME_STORAGE }}:{{ ACME_STORAGE }}
       {%- endif %}
@@ -25,20 +23,34 @@ services:
       - traefik-users
     {%- endif %}
     command:
+      # Pour healthcheck
       - '--ping'
+      {%- if DEBUG == 'y' %}
       - '--log.level=DEBUG'
-      - '--api.insecure=true'
-      - '--entrypoints.web.address=:80'
-      - '--providers.docker'
+      {%- endif %}
+      # Dashboard
+      - '--api.dashboard=true'
+      # Config pour docker swarm
+      - '--providers.docker.endpoint=unix:///var/run/docker.sock'
       - '--providers.docker.swarmmode=true'
       - '--providers.docker.exposedbydefault=false'
       - '--providers.docker.network={{ TRAEFIK_NETWORK }}'
+      - '--entrypoints.web.address=:80'
       {%- if ENABLE_TLS == 'y' %}
       - '--entrypoints.websecure.address=:443'
+      - '--certificatesresolvers.letsencrypt.acme.tlschallenge=true'
       - '--certificatesresolvers.letsencrypt.acme.email={{ CERTIFICATE_EMAIL }}'
       - '--certificatesresolvers.letsencrypt.acme.storage={{ ACME_STORAGE }}'
-      # - '--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory'
-      - '--certificatesresolvers.letsencrypt.acme.tlschallenge=true'
+      {%- if DEBUG == 'y' %}
+      # Mettre staging si tests pour ne pas se faire bloquer par letsencrypt
+      # Commenter pour production
+      - '--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory'
+      {%- endif %}
+      {%- if ENABLE_HTTPS_REDIRECTION == 'y' %}
+      # Global HTTP -> HTTPS
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      {%- endif %}
       {%- endif %}
       {%- if METRICS == 'y' %}
       - '--metrics.prometheus=true'
@@ -53,24 +65,23 @@ services:
     networks:
       - {{ TRAEFIK_NETWORK }}
     deploy:
-      mode: global
+      placement:
+        constraints:
+          - node.role == manager
       labels:
-        - 'traefik.http.routers.traefik.entrypoints=web'
+        - 'traefik.enable=true'
+        - "traefik.http.routers.traefik.service=api@internal"
+        - "traefik.http.services.traefik.loadbalancer.server.port=888" # required by swarm but not used.
         - 'traefik.http.routers.traefik.rule=Host(`{{ TRAEFIK_HOST }}`)'
-        - 'traefik.http.services.traefik-service.loadbalancer.server.port=8080'
         {%- if ENABLE_TLS == 'y' %}
-        - 'traefik.http.routers.traefik-secure.entrypoints=websecure'
-        - 'traefik.http.routers.traefik-secure.rule=Host(`{{ TRAEFIK_HOST }}`)'
-        - 'traefik.http.routers.traefik-secure.tls.certresolver=letsencrypt'
+        - 'traefik.http.routers.traefik.tls.certresolver=letsencrypt'
+        - 'traefik.http.routers.traefik.entrypoints=websecure'
+        {%- else %}
+        - 'traefik.http.routers.traefik.entrypoints=web'
+        {%- endif %}
         {%- if TRAEFIK_AUTH == 'y' %}
-        - "traefik.http.routers.traefik-secure.middlewares=auth"
+        - "traefik.http.routers.traefik.middlewares=auth"
         - "traefik.http.middlewares.auth.basicauth.usersfile=/run/secrets/traefik-users"
-        {%- endif %}
-        {%- endif %}
-        {%- if ENABLE_HTTPS_REDIRECTION == 'y' %}
-        - 'traefik.http.middlewares.traefik-redirectscheme.redirectscheme.permanent=true'
-        - 'traefik.http.middlewares.traefik-redirectscheme.redirectscheme.scheme=https'
-        - 'traefik.http.routers.traefik.middlewares=traefik-redirectscheme'
         {%- endif %}
 
 # volumes:

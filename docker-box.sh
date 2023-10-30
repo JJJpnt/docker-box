@@ -106,6 +106,7 @@ TRAEFIK_AUTH="y"
 TRAEFIK_USERNAME="admin"
 TRAEFIK_PASSWORD=""
 METRICS="y"
+DEBUG="n"
 AGENT_SECRET=$(openssl rand -hex 32)
 
 log "Installing setup packages..."
@@ -139,6 +140,7 @@ else
 fi
 
 METRICS=$(get-input "Enable metrics? (y/n)" "${METRICS}")
+DEBUG=$(get-input "Enable debug? (y/n)" "${DEBUG}")
 
 TRAEFIK_AUTH=$(get-input "Enable traefik basic auth? (y/n)" "${TRAEFIK_AUTH}")
 if [ "${TRAEFIK_AUTH}" = 'y' ]; then
@@ -157,6 +159,7 @@ true >"${DOCKER_BOX_DATA_PATH}"
   echo "export TRAEFIK_AUTH=${TRAEFIK_AUTH}"
   echo "export TRAEFIK_USERNAME=${TRAEFIK_USERNAME}"
   echo "export METRICS=${METRICS}"
+  echo "export DEBUG=${DEBUG}"
 } >>"${DOCKER_BOX_DATA_PATH}"
 
 # shellcheck source=/dev/null
@@ -292,6 +295,12 @@ if ! PORTAINER_API_TOKEN=$(
 fi
 
 
+echo "Workaround pour le bug de création endpoint portainer :"
+echo "Go créer le compte admin sur ${PORTAINER_HOST} en utilisant le même mot de passe que celui utilisé pour le portainer admin password"
+read -p "Appuyer sur une touche quand c'est fait... cimer!"
+
+# A retester dans le futur (sûrement un bug de l'api portainer)
+
 # docker network create \
 # --driver overlay \
 #   portainer_agent_network
@@ -389,8 +398,10 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     <"${DOCKER_BOX_PATH}/conf/traefik-stack.yml.tpl")
   TRAEFIK_STACK=$(echo "${TRAEFIK_STACK}" | jq --raw-input --slurp)
 
-  # DEBUG === TRAEFIK_STACK OUTPUT
+if [ "$DEBUG" = "y" ]; then
+  # TRAEFIK_STACK OUTPUT
   docker run -i \
+    -e DEBUG="$DEBUG" \
     -e METRICS="$METRICS" \
     -e TRAEFIK_AUTH="$TRAEFIK_AUTH" \
     -e TRAEFIK_VERSION="$TRAEFIK_VERSION" \
@@ -404,6 +415,7 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
     <"${DOCKER_BOX_PATH}/conf/traefik-stack.yml.tpl" \
     >"${DOCKER_BOX_PATH}/conf/traefik-stack.yml"
+fi
 
   if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     curl \
@@ -464,8 +476,20 @@ else
   log_warn "docker-registry stack already exists, skipping..."
 fi
 
-  echo "${DOCKER_REGISTRY_STACK}"
-
+if [ "$DEBUG" = "y" ]; then
+  # DOCKER_REGISTRY_STACK OUTPUT
+  docker run -i \
+    -e DOCKER_REGISTRY_VERSION="${DOCKER_REGISTRY_VERSION}" \
+    -e DOCKER_REGISTRY_USER_PASSWORD="${DOCKER_REGISTRY_USER_PASSWORD}" \
+    -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
+    -e DOCKER_REGISTRY_HOST="${DOCKER_REGISTRY_HOST}" \
+    -e ENABLE_TLS="${ENABLE_TLS}" \
+    -e ENABLE_HTTPS_REDIRECTION="${ENABLE_HTTPS_REDIRECTION}" \
+    python:3.9.6-alpine3.14 \
+    sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
+    <"${DOCKER_BOX_PATH}/conf/docker-registry-stack.yml.tpl" \
+    >"${DOCKER_BOX_PATH}/conf/docker-registry-stack.yml"
+fi
 
 log "Creating metrics stack..."
 
@@ -489,7 +513,19 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     <"${DOCKER_BOX_PATH}/conf/metrics-stack.yml.tpl")
   METRICS_STACK=$(echo "${METRICS_STACK}" | jq --raw-input --slurp)
 
-  echo "${METRICS_STACK}"
+  if [ "$DEBUG" = "y" ]; then
+    # METRICS_STACK OUTPUT
+    docker run -i \
+      -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
+      -e PROMETHEUS_HOST="${PROMETHEUS_HOST}" \
+      -e GRAFANA_HOST="${GRAFANA_HOST}" \
+      -e ENABLE_TLS="${ENABLE_TLS}" \
+      -e ENABLE_HTTPS_REDIRECTION="${ENABLE_HTTPS_REDIRECTION}" \
+      python:3.9.6-alpine3.14 \
+      sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
+      <"${DOCKER_BOX_PATH}/conf/metrics-stack.yml.tpl" \
+      >"${DOCKER_BOX_PATH}/conf/metrics-stack.yml"
+  fi
 
   if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     curl \
