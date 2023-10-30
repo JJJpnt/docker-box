@@ -309,27 +309,27 @@ fi
 #   --mount type=bind,src=//var/lib/docker/volumes,dst=/var/lib/docker/volumes \
 #   portainer/agent:${PORTAINER_VERSION}
 
-log "Creating primary portainer endpoint"
+# log "Creating primary portainer endpoint"
 
-if ! PORTAINER_ENDPOINT_ID=$(
-  docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
-    curl \
-    --fail \
-    --silent \
-    --header "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
-    --header 'Accept: application/json' \
-    --header "Content-Type: multipart/form-data" \
-    --request POST \
-    --form Name=primary \
-    --form EndpointCreationType=2 \
-    --form TLS=true \
-    --form TLSSkipVerify=true \
-    --form TLSSkipClientVerify=true \
-    portainer:9000/api/endpoints
-); then
-  log_error "Unable to create primary portainer endpoint"
-fi
-    # --form URL=tcp://tasks.portainer_agent:9001 \
+# if ! PORTAINER_ENDPOINT_ID=$(
+#   docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
+#     curl \
+#     --fail \
+#     --silent \
+#     --header "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
+#     --header 'Accept: application/json' \
+#     --header "Content-Type: multipart/form-data" \
+#     --request POST \
+#     --form Name=primary \
+#     --form EndpointCreationType=2 \
+#     --form TLS=true \
+#     --form TLSSkipVerify=true \
+#     --form TLSSkipClientVerify=true \
+#     portainer:9000/api/endpoints
+# ); then
+#   log_error "Unable to create primary portainer endpoint"
+# fi
+#     # --form URL=tcp://tasks.portainer_agent:9001 \
 
 log "Getting primary portainer endpoint id..."
 
@@ -464,6 +464,9 @@ else
   log_warn "docker-registry stack already exists, skipping..."
 fi
 
+  echo "${DOCKER_REGISTRY_STACK}"
+
+
 log "Creating metrics stack..."
 
 if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
@@ -485,6 +488,8 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
     <"${DOCKER_BOX_PATH}/conf/metrics-stack.yml.tpl")
   METRICS_STACK=$(echo "${METRICS_STACK}" | jq --raw-input --slurp)
+
+  echo "${METRICS_STACK}"
 
   if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     curl \

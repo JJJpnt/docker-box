@@ -117,6 +117,21 @@ services:
       replicas: 1
       placement:
         constraints: [node.role == manager]
+      labels: 
+        - 'traefik.enable=true'
+        - 'traefik.http.routers.portainer.entrypoints=web'
+        - 'traefik.http.routers.portainer.rule=Host(`{{ PORTAINER_HOST }}`)'
+        - 'traefik.http.services.portainer-service.loadbalancer.server.port=9000'
+        {%- if ENABLE_TLS == 'y' %}
+        - 'traefik.http.routers.portainer-secure.entrypoints=websecure'
+        - 'traefik.http.routers.portainer-secure.rule=Host(`{{ PORTAINER_HOST }}`)'
+        - 'traefik.http.routers.portainer-secure.tls.certresolver=letsencrypt'
+        {%- endif %}
+        {%- if ENABLE_HTTPS_REDIRECTION == 'y' %}
+        - 'traefik.http.middlewares.portainer-redirectscheme.redirectscheme.permanent=true'
+        - 'traefik.http.middlewares.portainer-redirectscheme.redirectscheme.scheme=https'
+        - 'traefik.http.routers.portainer.middlewares=portainer-redirectscheme'
+        {%- endif %}
 
 networks:
   agent_network:

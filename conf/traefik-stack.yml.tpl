@@ -29,10 +29,10 @@ services:
       - '--log.level=DEBUG'
       - '--api.insecure=true'
       - '--entrypoints.web.address=:80'
-      - '--providers.docker'
-      - '--providers.docker.swarmmode=true'
-      - '--providers.docker.exposedbydefault=false'
-      - '--providers.docker.network={{ TRAEFIK_NETWORK }}'
+      # - '--providers.docker'
+      # - '--providers.docker.swarmmode=true'
+      # - '--providers.docker.exposedbydefault=false'
+      # - '--providers.docker.network={{ TRAEFIK_NETWORK }}'
       {%- if ENABLE_TLS == 'y' %}
       - '--entrypoints.websecure.address=:443'
       - '--certificatesresolvers.letsencrypt.acme.email={{ CERTIFICATE_EMAIL }}'
@@ -55,10 +55,6 @@ services:
     deploy:
       mode: global
       labels:
-        {%- if TRAEFIK_AUTH == 'y' %}
-        - "traefik.http.routers.traefik.middlewares=auth"
-        - "traefik.http.middlewares.auth.basicauth.usersfile=/run/secrets/traefik-users"
-        {%- endif %}
         - 'traefik.http.routers.traefik.entrypoints=web'
         - 'traefik.http.routers.traefik.rule=Host(`{{ TRAEFIK_HOST }}`)'
         - 'traefik.http.services.traefik-service.loadbalancer.server.port=8080'
@@ -66,6 +62,10 @@ services:
         - 'traefik.http.routers.traefik-secure.entrypoints=websecure'
         - 'traefik.http.routers.traefik-secure.rule=Host(`{{ TRAEFIK_HOST }}`)'
         - 'traefik.http.routers.traefik-secure.tls.certresolver=letsencrypt'
+        {%- if TRAEFIK_AUTH == 'y' %}
+        - "traefik.http.routers.traefik-secure.middlewares=auth"
+        - "traefik.http.middlewares.auth.basicauth.usersfile=/run/secrets/traefik-users"
+        {%- endif %}
         {%- endif %}
         {%- if ENABLE_HTTPS_REDIRECTION == 'y' %}
         - 'traefik.http.middlewares.traefik-redirectscheme.redirectscheme.permanent=true'
