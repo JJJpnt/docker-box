@@ -383,6 +383,7 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
   portainer:9000/api/stacks | jq -e -c '.[] | select(.Name | contains("traefik"))' >/dev/null; then
 
   TRAEFIK_STACK=$(docker run -i \
+    -e DEBUG="$DEBUG" \
     -e METRICS="$METRICS" \
     -e TRAEFIK_AUTH="$TRAEFIK_AUTH" \
     -e TRAEFIK_VERSION="$TRAEFIK_VERSION" \
