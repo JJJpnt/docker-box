@@ -109,6 +109,9 @@ services:
       - portainer_data:/data
     networks:
       - agent_network
+      - {{ TRAEFIK_NETWORK }}
+    secrets:
+      - portainer-pass
     deploy:
       mode: replicated
       replicas: 1
@@ -119,6 +122,12 @@ networks:
   agent_network:
     driver: overlay
     attachable: true
+  {{ TRAEFIK_NETWORK }}:
+    external: true
 
 volumes:
   portainer_data:
+
+secrets:
+  portainer-pass:
+    external: true

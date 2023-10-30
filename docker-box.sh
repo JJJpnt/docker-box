@@ -89,7 +89,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 ARCH=$(dpkg --print-architecture)
 # PORTAINER_VERSION="linux-${ARCH}"
-PORTAINER_VERSION="2.19.1-alpine"
+PORTAINER_VERSION="2.19.1"
 TRAEFIK_NETWORK="traefik-public"
 TRAEFIK_VERSION="v2.10.5"
 DOCKER_REGISTRY_VERSION="2.8.3"
