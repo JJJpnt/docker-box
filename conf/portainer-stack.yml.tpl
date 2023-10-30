@@ -1,38 +1,39 @@
-version: '3.8'
+version: '3.2'
 
 services:
   agent:
     image: portainer/agent:{{ PORTAINER_VERSION }}
-    environment:
-      AGENT_CLUSTER_ADDR: tasks.portainer_agent
-      AGENT_PORT: 9001
+    # environment:
+      # AGENT_CLUSTER_ADDR: tasks.portainer_agent
+      # AGENT_PORT: 9001
       # AGENT_SECRET: {{ AGENT_SECRET }}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/volumes:/var/lib/docker/volumes
-      # - etc:/etc
     networks:
       - agent_network
-    ports:
-      - target: 9001
-        published: 9001
-        protocol: tcp
-        mode: host
+    # ports:
+    #   - target: 9001
+    #     published: 9001
+    #     protocol: tcp
+    #     mode: host
     deploy:
       mode: global
       placement:
         constraints: [node.platform.os == linux]
-      labels:
+      # labels:
         # fix traefik error "service \"portainer-agent\" error: port is missing"""
-        - 'traefik.http.services.portainer-agent-service.loadbalancer.server.port=1337'
+        # - 'traefik.http.services.portainer-agent-service.loadbalancer.server.port=1337'
 
   portainer:
     image: portainer/portainer-ce:{{ PORTAINER_VERSION }}
-    command:
-      - '--host=tcp://tasks.portainer_agent:9001'
-      - '--admin-password-file=/run/secrets/portainer-pass'
-      - '--tlsskipverify'
-      - '--log-level=DEBUG'
+    command: -H tcp://tasks.agent:9001 --tlsskipverify --admin-password-file=/run/secrets/portainer-pass
+
+    # command:
+    #   - '--host=tcp://tasks.portainer_agent:9001'
+    #   - '--admin-password-file=/run/secrets/portainer-pass'
+    #   - '--tlsskipverify'
+    #   - '--log-level=DEBUG'
     volumes:
       - portainer_data:/data
     networks:
