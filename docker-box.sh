@@ -276,6 +276,10 @@ done
 
 echo -e "${GREEN}OK${NC}"
 
+echo "Workaround pour le bug de création endpoint portainer :"
+echo "Go créer le compte admin sur ${PORTAINER_HOST} en utilisant le même mot de passe que celui utilisé pour le portainer admin password"
+read -p "Appuyer sur une touche quand c'est fait... cimer!"
+
 log "Generating portainer API token..."
 
 if ! PORTAINER_API_TOKEN=$(
@@ -293,11 +297,6 @@ if ! PORTAINER_API_TOKEN=$(
   log_error "Unable to generate portainer API token. Is the portainer admin password correct?"
   exit 1
 fi
-
-
-echo "Workaround pour le bug de création endpoint portainer :"
-echo "Go créer le compte admin sur ${PORTAINER_HOST} en utilisant le même mot de passe que celui utilisé pour le portainer admin password"
-read -p "Appuyer sur une touche quand c'est fait... cimer!"
 
 # A retester dans le futur (sûrement un bug de l'api portainer)
 
