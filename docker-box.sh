@@ -381,6 +381,25 @@ fi
 
 log "Creating traefik stack..."
 
+if [ "$DEBUG" = "y" ]; then
+  # TRAEFIK_STACK OUTPUT
+  docker run -i \
+    -e DEBUG="$DEBUG" \
+    -e METRICS="$METRICS" \
+    -e TRAEFIK_AUTH="$TRAEFIK_AUTH" \
+    -e TRAEFIK_VERSION="$TRAEFIK_VERSION" \
+    -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
+    -e TRAEFIK_HOST="${TRAEFIK_HOST}" \
+    -e ENABLE_TLS="${ENABLE_TLS}" \
+    -e ENABLE_HTTPS_REDIRECTION="${ENABLE_HTTPS_REDIRECTION}" \
+    -e ACME_STORAGE="${ACME_STORAGE}" \
+    -e CERTIFICATE_EMAIL="${CERTIFICATE_EMAIL}" \
+    python:3.9.6-alpine3.14 \
+    sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
+    <"${DOCKER_BOX_PATH}/conf/traefik-stack.yml.tpl" \
+    >"${DOCKER_BOX_PATH}/conf/traefik-stack.yml"
+fi
+
 if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
   curl \
   --fail \
@@ -405,25 +424,6 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
     <"${DOCKER_BOX_PATH}/conf/traefik-stack.yml.tpl")
   TRAEFIK_STACK=$(echo "${TRAEFIK_STACK}" | jq --raw-input --slurp)
-
-if [ "$DEBUG" = "y" ]; then
-  # TRAEFIK_STACK OUTPUT
-  docker run -i \
-    -e DEBUG="$DEBUG" \
-    -e METRICS="$METRICS" \
-    -e TRAEFIK_AUTH="$TRAEFIK_AUTH" \
-    -e TRAEFIK_VERSION="$TRAEFIK_VERSION" \
-    -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
-    -e TRAEFIK_HOST="${TRAEFIK_HOST}" \
-    -e ENABLE_TLS="${ENABLE_TLS}" \
-    -e ENABLE_HTTPS_REDIRECTION="${ENABLE_HTTPS_REDIRECTION}" \
-    -e ACME_STORAGE="${ACME_STORAGE}" \
-    -e CERTIFICATE_EMAIL="${CERTIFICATE_EMAIL}" \
-    python:3.9.6-alpine3.14 \
-    sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
-    <"${DOCKER_BOX_PATH}/conf/traefik-stack.yml.tpl" \
-    >"${DOCKER_BOX_PATH}/conf/traefik-stack.yml"
-fi
 
   if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     curl \
@@ -453,6 +453,21 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
   --header 'Accept: application/json' \
   --request GET \
   portainer:9000/api/stacks | jq -e -c '.[] | select(.Name | contains("docker-registry"))' >/dev/null; then
+
+  if [ "$DEBUG" = "y" ]; then
+    # DOCKER_REGISTRY_STACK OUTPUT
+    docker run -i \
+      -e DOCKER_REGISTRY_VERSION="${DOCKER_REGISTRY_VERSION}" \
+      -e DOCKER_REGISTRY_USER_PASSWORD="${DOCKER_REGISTRY_USER_PASSWORD}" \
+      -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
+      -e DOCKER_REGISTRY_HOST="${DOCKER_REGISTRY_HOST}" \
+      -e ENABLE_TLS="${ENABLE_TLS}" \
+      -e ENABLE_HTTPS_REDIRECTION="${ENABLE_HTTPS_REDIRECTION}" \
+      python:3.9.6-alpine3.14 \
+      sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
+      <"${DOCKER_BOX_PATH}/conf/docker-registry-stack.yml.tpl" \
+      >"${DOCKER_BOX_PATH}/conf/docker-registry-stack.yml"
+  fi
 
   DOCKER_REGISTRY_STACK=$(docker run -i \
     -e DOCKER_REGISTRY_VERSION="${DOCKER_REGISTRY_VERSION}" \
@@ -484,22 +499,21 @@ else
   log_warn "docker-registry stack already exists, skipping..."
 fi
 
+log "Creating metrics stack..."
+
 if [ "$DEBUG" = "y" ]; then
-  # DOCKER_REGISTRY_STACK OUTPUT
+  # METRICS_STACK OUTPUT
   docker run -i \
-    -e DOCKER_REGISTRY_VERSION="${DOCKER_REGISTRY_VERSION}" \
-    -e DOCKER_REGISTRY_USER_PASSWORD="${DOCKER_REGISTRY_USER_PASSWORD}" \
     -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
-    -e DOCKER_REGISTRY_HOST="${DOCKER_REGISTRY_HOST}" \
+    -e PROMETHEUS_HOST="${PROMETHEUS_HOST}" \
+    -e GRAFANA_HOST="${GRAFANA_HOST}" \
     -e ENABLE_TLS="${ENABLE_TLS}" \
     -e ENABLE_HTTPS_REDIRECTION="${ENABLE_HTTPS_REDIRECTION}" \
     python:3.9.6-alpine3.14 \
     sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
-    <"${DOCKER_BOX_PATH}/conf/docker-registry-stack.yml.tpl" \
-    >"${DOCKER_BOX_PATH}/conf/docker-registry-stack.yml"
+    <"${DOCKER_BOX_PATH}/conf/metrics-stack.yml.tpl" \
+    >"${DOCKER_BOX_PATH}/conf/metrics-stack.yml"
 fi
-
-log "Creating metrics stack..."
 
 if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
   curl \
@@ -520,20 +534,6 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
     <"${DOCKER_BOX_PATH}/conf/metrics-stack.yml.tpl")
   METRICS_STACK=$(echo "${METRICS_STACK}" | jq --raw-input --slurp)
-
-  if [ "$DEBUG" = "y" ]; then
-    # METRICS_STACK OUTPUT
-    docker run -i \
-      -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
-      -e PROMETHEUS_HOST="${PROMETHEUS_HOST}" \
-      -e GRAFANA_HOST="${GRAFANA_HOST}" \
-      -e ENABLE_TLS="${ENABLE_TLS}" \
-      -e ENABLE_HTTPS_REDIRECTION="${ENABLE_HTTPS_REDIRECTION}" \
-      python:3.9.6-alpine3.14 \
-      sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
-      <"${DOCKER_BOX_PATH}/conf/metrics-stack.yml.tpl" \
-      >"${DOCKER_BOX_PATH}/conf/metrics-stack.yml"
-  fi
 
   if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     curl \
