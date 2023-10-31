@@ -283,6 +283,7 @@ done
 
 echo -e "${GREEN}OK${NC}"
 
+docker service update portainer_portainer --publish-add 9000:9000
 echo "Workaround pour le bug de création endpoint portainer :"
 echo "Go créer le compte admin sur ${PORTAINER_HOST} en utilisant le même mot de passe que celui utilisé pour le portainer admin password"
 read -p "Appuyer sur une touche quand c'est fait... cimer!"
@@ -555,7 +556,14 @@ fi
 log "Pruning unused docker objects (this can take a while)..."
 docker system prune --force
 
+log "Pruning unused docker objects (this can take a while)..."
+log "Removing portainer port 9000 publish..."
+docker service update portainer_portainer --publish-rm 9000:9000
+
+
 log_success "Success! Your box is ready to use!"
+
+
 
 [[ ${ENABLE_TLS} = "y" ]] && SCHEME="https" || SCHEME="http"
 
