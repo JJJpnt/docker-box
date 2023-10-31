@@ -1,7 +1,7 @@
 version: '3.7'
 
-services:  
-  
+services:
+
   prometheus:
     image: prom/prometheus
     volumes:
@@ -27,14 +27,12 @@ services:
         {%- else %}
         - 'traefik.http.routers.prometheus.entrypoints=web'
         {%- endif %}
-
-
       placement:
         constraints:
         - node.role==manager
       restart_policy:
         condition: on-failure
-  
+
   grafana:
     image: grafana/grafana
     depends_on:
@@ -47,6 +45,8 @@ services:
     networks:
       - {{ TRAEFIK_NETWORK }}
     user: "104"
+    secrets:
+      - grafana-pass
     deploy:
       labels:
         - "traefik.enable=true"
@@ -74,4 +74,6 @@ volumes:
     prometheus_data:
     grafana_data:
 
-
+secrets:
+  grafana-pass:
+    external: true

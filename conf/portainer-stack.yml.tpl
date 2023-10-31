@@ -119,9 +119,8 @@ services:
         constraints: [node.role == manager]
       labels: 
         - 'traefik.enable=true'
-        - 'traefik.http.routers.portainer.entrypoints=web'
         - 'traefik.http.routers.portainer.rule=Host(`{{ PORTAINER_HOST }}`)'
-        - 'traefik.http.services.portainer-service.loadbalancer.server.port=9000'
+        - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
         {%- if ENABLE_TLS == 'y' %}
         - 'traefik.http.routers.portainer.tls.certresolver=letsencrypt'
         - 'traefik.http.routers.portainer.entrypoints=websecure'

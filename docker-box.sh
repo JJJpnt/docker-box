@@ -105,6 +105,7 @@ ENABLE_HTTPS_REDIRECTION="y"
 TRAEFIK_AUTH="y"
 TRAEFIK_USERNAME="admin"
 TRAEFIK_PASSWORD=""
+GRAFANA_PASSWORD="foobar"
 METRICS="y"
 DEBUG="n"
 AGENT_SECRET=$(openssl rand -hex 32)
@@ -140,6 +141,7 @@ else
 fi
 
 METRICS=$(get-input "Enable metrics? (y/n)" "${METRICS}")
+GRAFANA_PASSWORD=$(get-input "Grafana admin password" "${GRAFANA_PASSWORD}")
 DEBUG=$(get-input "Enable debug? (y/n)" "${DEBUG}")
 
 TRAEFIK_AUTH=$(get-input "Enable traefik basic auth? (y/n)" "${TRAEFIK_AUTH}")
@@ -217,6 +219,11 @@ chmod 600 "${ACME_STORAGE}"
 log "Creating portainer secret..."
 if ! docker secret inspect portainer-pass 2>/dev/null >/dev/null; then
   echo -n "${PORTAINER_ADMIN_PASSWORD}" | docker secret create portainer-pass -
+fi
+
+log "Creating grafana secret..."
+if ! docker secret inspect grafana-pass 2>/dev/null >/dev/null; then
+  echo -n "${GRAFANA_PASSWORD}" | docker secret create grafana-pass -
 fi
 
 if [ "${TRAEFIK_AUTH}" = 'y' ]; then
