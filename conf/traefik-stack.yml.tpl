@@ -62,11 +62,6 @@ services:
       - '--metrics.prometheus.headerlabels.useragent=User-Agent'
       # - '--metrics.prometheus.headerlabels.useragent=X-Forwarded-For'
       {%- endif %}
-      {%- if IP_WHITELIST == 'y' %}
-      - "traefik.http.middlewares.my-whitelist.ipwhitelist.sourcerange={{ IP_WHITELIST_RANGE }}"
-      - "traefik.http.routers.my-router.entrypoints=websecure"
-      - "traefik.http.routers.my-router.middlewares=my-whitelist"
-      {%- endif %}
     networks:
       - {{ TRAEFIK_NETWORK }}
     deploy:
@@ -87,6 +82,10 @@ services:
         {%- if TRAEFIK_AUTH == 'y' %}
         - "traefik.http.routers.traefik.middlewares=auth"
         - "traefik.http.middlewares.auth.basicauth.usersfile=/run/secrets/traefik-users"
+        {%- endif %}
+        {%- if IP_WHITELIST == 'y' %}
+        - "traefik.http.middlewares.my-whitelist.ipwhitelist.sourcerange={{ IP_WHITELIST_RANGE }}"
+        - "traefik.http.routers.traefik.middlewares=my-whitelist"
         {%- endif %}
 
 # volumes:

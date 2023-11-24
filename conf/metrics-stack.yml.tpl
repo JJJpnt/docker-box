@@ -27,6 +27,9 @@ services:
         {%- else %}
         - 'traefik.http.routers.prometheus.entrypoints=web'
         {%- endif %}
+        {%- if IP_WHITELIST == 'y' %}
+        - "traefik.http.routers.prometheus.middlewares=my-whitelist"
+        {%- endif %}
       placement:
         constraints:
         - node.role==manager
@@ -59,6 +62,9 @@ services:
         - 'traefik.http.routers.grafana.tls.certresolver=letsencrypt'
         {%- else %}
         - 'traefik.http.routers.grafana.entrypoints=web'
+        {%- endif %}
+        {%- if IP_WHITELIST == 'y' %}
+        - "traefik.http.routers.grafana.middlewares=my-whitelist"
         {%- endif %}
       placement:
         constraints:

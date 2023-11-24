@@ -251,6 +251,7 @@ log "Setting up portainer using version \"${PORTAINER_VERSION}\"..."
 
 if [ ! -f "${DOCKER_BOX_PATH}/conf/portainer-stack.yml" ]; then
   docker run -i \
+    -e IP_WHITELIST="$IP_WHITELIST" \
     -e PORTAINER_VERSION="${PORTAINER_VERSION}" \
     -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
     -e PORTAINER_HOST="${PORTAINER_HOST}" \
@@ -470,6 +471,7 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
   if [ "$DEBUG" = "y" ]; then
     # DOCKER_REGISTRY_STACK OUTPUT
     docker run -i \
+      -e IP_WHITELIST="$IP_WHITELIST" \
       -e DOCKER_REGISTRY_VERSION="${DOCKER_REGISTRY_VERSION}" \
       -e DOCKER_REGISTRY_USER_PASSWORD="${DOCKER_REGISTRY_USER_PASSWORD}" \
       -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
@@ -483,6 +485,7 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
   fi
 
   DOCKER_REGISTRY_STACK=$(docker run -i \
+    -e IP_WHITELIST="$IP_WHITELIST" \
     -e DOCKER_REGISTRY_VERSION="${DOCKER_REGISTRY_VERSION}" \
     -e DOCKER_REGISTRY_USER_PASSWORD="${DOCKER_REGISTRY_USER_PASSWORD}" \
     -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
@@ -517,6 +520,7 @@ log "Creating metrics stack..."
 if [ "$DEBUG" = "y" ]; then
   # METRICS_STACK OUTPUT
   docker run -i \
+    -e IP_WHITELIST="$IP_WHITELIST" \
     -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
     -e PROMETHEUS_HOST="${PROMETHEUS_HOST}" \
     -e GRAFANA_HOST="${GRAFANA_HOST}" \
@@ -538,6 +542,7 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
   portainer:9000/api/stacks | jq -e -c '.[] | select(.Name | contains("metrics"))' >/dev/null; then
 
   METRICS_STACK=$(docker run -i \
+    -e IP_WHITELIST="$IP_WHITELIST" \
     -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
     -e PROMETHEUS_HOST="${PROMETHEUS_HOST}" \
     -e GRAFANA_HOST="${GRAFANA_HOST}" \
