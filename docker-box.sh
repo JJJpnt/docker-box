@@ -97,7 +97,7 @@ ACME_STORAGE="/letsencrypt/acme.json"
 DOCKER_BOX_PATH="${HOME}/docker-box"
 DOCKER_BOX_DATA_PATH="${DOCKER_BOX_PATH}/.docker-box-data"
 DOCKER_BOX_HOST="docker-box.example.com"
-DOCKER_REGISTRY_USERNAME="richard"
+DOCKER_REGISTRY_USERNAME="gertrude"
 CERTIFICATE_EMAIL="email@example.com"
 PORTAINER_ADMIN_PASSWORD=""
 ENABLE_TLS="y"
@@ -109,6 +109,8 @@ GRAFANA_PASSWORD="foobar"
 METRICS="y"
 DEBUG="n"
 AGENT_SECRET=$(openssl rand -hex 32)
+IP_WHITELIST="y"
+IP_WHITELIST_RANGE=""
 
 log "Installing setup packages..."
 
@@ -162,6 +164,8 @@ true >"${DOCKER_BOX_DATA_PATH}"
   echo "export TRAEFIK_USERNAME=${TRAEFIK_USERNAME}"
   echo "export METRICS=${METRICS}"
   echo "export DEBUG=${DEBUG}"
+  echo "export IP_WHITELIST=${IP_WHITELIST}"
+  echo "export IP_WHITELIST_RANGE=${IP_WHITELIST_RANGE}"
 } >>"${DOCKER_BOX_DATA_PATH}"
 
 # shellcheck source=/dev/null

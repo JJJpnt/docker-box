@@ -62,6 +62,11 @@ services:
       - '--metrics.prometheus.headerlabels.useragent=User-Agent'
       # - '--metrics.prometheus.headerlabels.useragent=X-Forwarded-For'
       {%- endif %}
+      {%- if IP_WHITELIST == 'y' %}
+      - "traefik.http.middlewares.my-whitelist.ipwhitelist.sourcerange={{ IP_WHITELIST_RANGE }}"
+      - "traefik.http.routers.my-router.entrypoints=websecure"
+      - "traefik.http.routers.my-router.middlewares=my-whitelist"
+      {%- endif %}
     networks:
       - {{ TRAEFIK_NETWORK }}
     deploy:
