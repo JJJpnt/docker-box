@@ -395,6 +395,8 @@ if [ "$DEBUG" = "y" ]; then
   docker run -i \
     -e DEBUG="$DEBUG" \
     -e METRICS="$METRICS" \
+    -e IP_WHITELIST="$IP_WHITELIST" \
+    -e IP_WHITELIST_RANGE="$IP_WHITELIST_RANGE" \
     -e TRAEFIK_AUTH="$TRAEFIK_AUTH" \
     -e TRAEFIK_VERSION="$TRAEFIK_VERSION" \
     -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
