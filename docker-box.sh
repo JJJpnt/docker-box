@@ -142,6 +142,11 @@ else
   ENABLE_HTTPS_REDIRECTION="n"
 fi
 
+  IP_WHITELIST=$(get-input "Utiliser l'IP Whitelist ?" "${IP_WHITELIST}")
+if [ "${IP_WHITELIST}" = 'y' ]; then
+  IP_WHITELIST_RANGE=$(get-input "La whitelist svp" "${IP_WHITELIST_RANGE}")
+fi
+
 METRICS=$(get-input "Enable metrics? (y/n)" "${METRICS}")
 GRAFANA_PASSWORD=$(get-input "Grafana admin password" "${GRAFANA_PASSWORD}")
 DEBUG=$(get-input "Enable debug? (y/n)" "${DEBUG}")
