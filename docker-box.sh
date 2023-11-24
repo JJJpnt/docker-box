@@ -142,7 +142,7 @@ else
   ENABLE_HTTPS_REDIRECTION="n"
 fi
 
-  IP_WHITELIST=$(get-input "Utiliser l'IP Whitelist ?" "${IP_WHITELIST}")
+IP_WHITELIST=$(get-input "Utiliser l'IP Whitelist ?" "${IP_WHITELIST}")
 if [ "${IP_WHITELIST}" = 'y' ]; then
   IP_WHITELIST_RANGE=$(get-input "La whitelist svp" "${IP_WHITELIST_RANGE}")
 fi
@@ -421,6 +421,8 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
   TRAEFIK_STACK=$(docker run -i \
     -e DEBUG="$DEBUG" \
     -e METRICS="$METRICS" \
+    -e IP_WHITELIST="$IP_WHITELIST" \
+    -e IP_WHITELIST_RANGE="$IP_WHITELIST_RANGE" \
     -e TRAEFIK_AUTH="$TRAEFIK_AUTH" \
     -e TRAEFIK_VERSION="$TRAEFIK_VERSION" \
     -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
