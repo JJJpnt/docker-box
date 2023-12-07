@@ -42,9 +42,9 @@ services:
         {%- else %}
         - 'traefik.http.routers.portainer.entrypoints=web'
         {%- endif %}
-        {%- if IP_WHITELIST == 'y' %}
+        {# {%- if IP_WHITELIST == 'y' %}
         - "traefik.http.routers.traefik.middlewares=my-whitelist"
-        {%- endif %}
+        {%- endif %} #}
 
 networks:
   agent_network:

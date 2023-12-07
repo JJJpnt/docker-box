@@ -35,9 +35,9 @@ services:
         {%- endif %}
         - 'traefik.http.middlewares.docker-registry-auth.basicauth.users={{ DOCKER_REGISTRY_USER_PASSWORD }}'
         - 'traefik.http.routers.docker-registry.middlewares=docker-registry-auth'
-        {%- if IP_WHITELIST == 'y' %}
+        {# {%- if IP_WHITELIST == 'y' %}
         - "traefik.http.routers.docker-registry.middlewares=my-whitelist"
-        {%- endif %}
+        {%- endif %} #}
 
 volumes:
   data:

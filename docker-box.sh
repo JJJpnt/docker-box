@@ -391,6 +391,16 @@ fi
 
 log "Creating traefik stack..."
 
+if [ "$IP_WHITELIST" = "y" ]; then
+  docker run -i \
+    -e IP_WHITELIST="$IP_WHITELIST" \
+    -e IP_WHITELIST_RANGE="$IP_WHITELIST_RANGE" \
+    python:3.9.6-alpine3.14 \
+    sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
+    <"${DOCKER_BOX_PATH}/conf/traefik/traefik-config.yml.tpl" \
+    >"${DOCKER_BOX_PATH}/conf/traefik/traefik-config.yml"
+fi
+
 if [ "$DEBUG" = "y" ]; then
   # TRAEFIK_STACK OUTPUT
   docker run -i \
@@ -552,6 +562,10 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     sh -c "cat > file && pip3 install -q j2cli &>/dev/null && j2 file" \
     <"${DOCKER_BOX_PATH}/conf/metrics-stack.yml.tpl")
   METRICS_STACK=$(echo "${METRICS_STACK}" | jq --raw-input --slurp)
+
+  if [ "$DEBUG" = "y" ]; then
+    echo "${METRICS_STACK}"
+  fi
 
   if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     curl \
