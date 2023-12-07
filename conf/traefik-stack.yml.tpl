@@ -47,9 +47,8 @@ services:
       - '--certificatesresolvers.letsencrypt.acme.tlschallenge=true'
       - '--certificatesresolvers.letsencrypt.acme.email={{ CERTIFICATE_EMAIL }}'
       - '--certificatesresolvers.letsencrypt.acme.storage={{ ACME_STORAGE }}'
-      {%- if DEBUG == 'y' %}
+      {%- if STAGING_CERT == 'y' %}
       # Mettre staging si tests pour ne pas se faire bloquer par letsencrypt
-      # Commenter pour production
       - '--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory'
       {%- endif %}
       {%- if ENABLE_HTTPS_REDIRECTION == 'y' %}

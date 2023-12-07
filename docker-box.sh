@@ -108,6 +108,7 @@ TRAEFIK_PASSWORD=""
 GRAFANA_PASSWORD="foobar"
 METRICS="y"
 DEBUG="n"
+STAGING_CERT="n"
 AGENT_SECRET=$(openssl rand -hex 32)
 IP_WHITELIST="y"
 IP_WHITELIST_RANGE=""
@@ -150,6 +151,7 @@ fi
 METRICS=$(get-input "Enable metrics? (y/n)" "${METRICS}")
 GRAFANA_PASSWORD=$(get-input "Grafana admin password" "" -s)
 DEBUG=$(get-input "Enable debug? (y/n)" "${DEBUG}")
+STAGING_CERT=$(get-input "Use staging let's encrypt certs? (y/n)" "${STAGING_CERT}")
 
 TRAEFIK_AUTH=$(get-input "Enable traefik basic auth? (y/n)" "${TRAEFIK_AUTH}")
 if [ "${TRAEFIK_AUTH}" = 'y' ]; then
@@ -169,6 +171,7 @@ true >"${DOCKER_BOX_DATA_PATH}"
   echo "export TRAEFIK_USERNAME=${TRAEFIK_USERNAME}"
   echo "export METRICS=${METRICS}"
   echo "export DEBUG=${DEBUG}"
+  echo "export STAGING_CERT=${STAGING_CERT}"
   echo "export IP_WHITELIST=${IP_WHITELIST}"
   echo "export IP_WHITELIST_RANGE=${IP_WHITELIST_RANGE}"
 } >>"${DOCKER_BOX_DATA_PATH}"
@@ -406,6 +409,7 @@ if [ "$DEBUG" = "y" ]; then
   # TRAEFIK_STACK OUTPUT
   docker run -i \
     -e DEBUG="$DEBUG" \
+    -e STAGING_CERT="$STAGING_CERT" \
     -e METRICS="$METRICS" \
     -e IP_WHITELIST="$IP_WHITELIST" \
     -e IP_WHITELIST_RANGE="$IP_WHITELIST_RANGE" \
@@ -434,6 +438,7 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
 
   TRAEFIK_STACK=$(docker run -i \
     -e DEBUG="$DEBUG" \
+    -e STAGING_CERT="$STAGING_CERT" \
     -e METRICS="$METRICS" \
     -e IP_WHITELIST="$IP_WHITELIST" \
     -e IP_WHITELIST_RANGE="$IP_WHITELIST_RANGE" \
