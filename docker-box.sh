@@ -393,6 +393,7 @@ log "Creating traefik stack..."
 
 if [ "$IP_WHITELIST" = "y" ]; then
   docker run -i \
+    -e TRAEFIK_NETWORK="${TRAEFIK_NETWORK}" \
     -e IP_WHITELIST="$IP_WHITELIST" \
     -e IP_WHITELIST_RANGE="$IP_WHITELIST_RANGE" \
     python:3.9.6-alpine3.14 \
