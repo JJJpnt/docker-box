@@ -148,7 +148,7 @@ if [ "${IP_WHITELIST}" = 'y' ]; then
 fi
 
 METRICS=$(get-input "Enable metrics? (y/n)" "${METRICS}")
-GRAFANA_PASSWORD=$(get-input "Grafana admin password" "${GRAFANA_PASSWORD}")
+GRAFANA_PASSWORD=$(get-input "Grafana admin password" "${GRAFANA_PASSWORD} -s")
 DEBUG=$(get-input "Enable debug? (y/n)" "${DEBUG}")
 
 TRAEFIK_AUTH=$(get-input "Enable traefik basic auth? (y/n)" "${TRAEFIK_AUTH}")
@@ -568,20 +568,24 @@ if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
     echo "${METRICS_STACK}"
   fi
 
-  if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
-    curl \
-    --fail \
-    --silent \
-    --header "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
-    --header "Content-Type: application/json" \
-    --header 'Accept: application/json' \
-    --request POST \
-    --data "{\"name\":\"metrics\",\"stackFileContent\":${METRICS_STACK},\"swarmID\":\"${PORTAINER_SWARM_ID}\"}" \
-    "portainer:9000/api/stacks?type=1&method=string&endpointId=${PORTAINER_ENDPOINT_ID}" > \
-    /dev/null; then
-    log_error "Unable to create metrics stack"
-    exit 1
-  fi
+  # Marche pas via API (magie noire ?)
+  # if ! docker run --net=${TRAEFIK_NETWORK} curlimages/curl:7.77.0 \
+  #   curl \
+  #   --fail \
+  #   --silent \
+  #   --header "Authorization: Bearer ${PORTAINER_API_TOKEN}" \
+  #   --header "Content-Type: application/json" \
+  #   --header 'Accept: application/json' \
+  #   --request POST \
+  #   --data "{\"name\":\"metrics\",\"stackFileContent\":${METRICS_STACK},\"swarmID\":\"${PORTAINER_SWARM_ID}\"}" \
+  #   "portainer:9000/api/stacks?type=1&method=string&endpointId=${PORTAINER_ENDPOINT_ID}" > \
+  #   /dev/null; then
+  #   log_error "Unable to create metrics stack"
+  #   exit 1
+  # fi
+  # Workaround debug :
+  docker stack deploy -c "${DOCKER_BOX_PATH}/conf/metrics-stack.yml" metrics
+
 else
   log_warn "metrics stack already exists, skipping..."
 fi
