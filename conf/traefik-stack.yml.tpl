@@ -16,9 +16,9 @@ services:
       {%- if ENABLE_TLS == 'y' %}
       - {{ ACME_STORAGE }}:{{ ACME_STORAGE }}
       {%- endif %}
-      {%- if IP_WHITELIST == 'y' %}
+      {# {%- if IP_WHITELIST == 'y' %}
       - "${DOCKER_BOX_PATH}/conf/traefik/traefik-config.yml:/etc/traefik/traefik-config.yml"
-      {%- endif %}
+      {%- endif %} #}
     healthcheck:
       test: ['CMD', 'traefik', 'healthcheck', '--ping']
     {%- if TRAEFIK_AUTH == 'y' %}
@@ -26,9 +26,9 @@ services:
       - traefik-users
     {%- endif %}
     command:
-      {%- if IP_WHITELIST == 'y' %}
+      {# {%- if IP_WHITELIST == 'y' %}
       - '--configFile=/etc/traefik/traefik-config.yml'
-      {%- endif %}
+      {%- endif %} #}
       # Pour healthcheck
       - '--ping'
       {%- if DEBUG == 'y' %}
@@ -89,10 +89,10 @@ services:
         - "traefik.http.routers.traefik.middlewares=auth"
         - "traefik.http.middlewares.auth.basicauth.usersfile=/run/secrets/traefik-users"
         {%- endif %}
-        {# {%- if IP_WHITELIST == 'y' %}
+        {%- if IP_WHITELIST == 'y' %}
         - "traefik.http.middlewares.my-whitelist.ipwhitelist.sourcerange={{ IP_WHITELIST_RANGE }}"
         - "traefik.http.routers.traefik.middlewares=my-whitelist"
-        {%- endif %} #}
+        {%- endif %}
 
 # volumes:
 #   etc:
