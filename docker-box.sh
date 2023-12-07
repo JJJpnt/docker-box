@@ -148,7 +148,7 @@ if [ "${IP_WHITELIST}" = 'y' ]; then
 fi
 
 METRICS=$(get-input "Enable metrics? (y/n)" "${METRICS}")
-GRAFANA_PASSWORD=$(get-input "Grafana admin password" "${GRAFANA_PASSWORD} -s")
+GRAFANA_PASSWORD=$(get-input "Grafana admin password" "" -s)
 DEBUG=$(get-input "Enable debug? (y/n)" "${DEBUG}")
 
 TRAEFIK_AUTH=$(get-input "Enable traefik basic auth? (y/n)" "${TRAEFIK_AUTH}")
